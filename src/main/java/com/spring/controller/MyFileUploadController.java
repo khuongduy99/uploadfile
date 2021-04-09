@@ -80,9 +80,10 @@ public class MyFileUploadController {
 	   
 	// GET: Hiển thị trang form upload
 	   @RequestMapping(value = "/thuvienanh", method = RequestMethod.GET)
-	   public String getImages(Model model) {
-	 
-	       model.addAttribute("myUploadForm", getDB());
+	   public String getImages(HttpServletRequest request, Model model) {
+		   
+		   List<String> res = getDB(request);
+	       model.addAttribute("uploadedFiles", res);
 	 
 	       // Forward to "/WEB-INF/pages/uploadMultiFile.jsp".
 	       return "thuvienanh";
@@ -133,7 +134,7 @@ public class MyFileUploadController {
 	                   BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
 	                   stream.write(fileData.getBytes());
 	                   stream.close();
-	                   saveDB("/images/" + name);
+	                   saveDB("/images/" + name, request);
 	                   uploadedFiles.add("/images/" + name);
 	                   System.out.println("Write file: " + serverFile);
 	               } catch (Exception e) {
@@ -148,13 +149,14 @@ public class MyFileUploadController {
 	       return "uploadResult";
 	   }
 	   
-	   public static void saveDB(String data) {
+	   public static void saveDB(String data, HttpServletRequest request) {
 		    BufferedWriter bw = null;
 			FileWriter fw = null;
 			
-			Resource resource = new ClassPathResource("urlimage.txt");
+			 String uploadRootPath = request.getServletContext().getRealPath("urlimage.txt");
+		     
 			try {
-				File file = resource.getFile();
+				File file = new File(uploadRootPath);
 				if (!file.exists())
 					file.createNewFile();
 				fw = new FileWriter(file.getAbsoluteFile(), true);
@@ -174,31 +176,33 @@ public class MyFileUploadController {
 			}
 	   }
 	   
-	   public static List<String> getDB() {
+	   public static List<String> getDB(HttpServletRequest request) {
 		   FileInputStream fileInputStream = null;
 			BufferedReader bufferedReader = null;
 			List<String> list = null;
+			 String uploadRootPath = request.getServletContext().getRealPath("urlimage.txt");
 			try {
-				Resource resource = new ClassPathResource("urlimage.txt");
 				
-				fileInputStream = new FileInputStream(resource.getFile());
+				
+				fileInputStream = new FileInputStream(new File(uploadRootPath));
 				System.out.println(fileInputStream.toString());
 				bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
-				
-				String line = bufferedReader.readLine();
 				list = new ArrayList<String>();
+				String line = bufferedReader.readLine();
 				while (line != null) {
-					line = bufferedReader.readLine();
 					list.add(line);
+					line = bufferedReader.readLine();
+					
 				}
 				return list;
 			} catch (Exception e) {
 				return null;
 			}
+			
 	   }
 	   
 	   public static void main(String[] args) {
-		List<String> res = getDB();
-		System.out.println(res.size());
+//		List<String> res = getDB();
+//		System.out.println(res.size());
 	}
 }

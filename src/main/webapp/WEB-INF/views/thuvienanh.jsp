@@ -13,9 +13,13 @@
     Description: ${description}
      
     <br/>
-     
+     <% int stt = 1; %>
     <c:forEach items="${uploadedFiles}" var="file">
-          <img src="<%=request.getContextPath()%>${file}"/>
+          <li style="list-style-type: none">
+          <h6><%=stt %></h6>
+          	<img src="<%=request.getContextPath()%>${file}" width="10%"/>
+          </li>
+          <% stt++; %>
     </c:forEach>
  
 </body>
