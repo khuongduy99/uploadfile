@@ -1,21 +1,13 @@
 package com.spring.controller;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
@@ -26,10 +18,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
 
+import com.spring.model.FileImage;
 import com.spring.model.MyUploadForm;
 
 @Controller
 public class MyFileUploadController {
+	
+	private static final String FOLDER_ROOT = "/images";
 	// Phương thức này được gọi mỗi lần có Submit.
 	   @InitBinder
 	   public void initBinder(WebDataBinder dataBinder) {
@@ -81,11 +76,29 @@ public class MyFileUploadController {
 	// GET: Hiển thị trang form upload
 	   @RequestMapping(value = "/thuvienanh", method = RequestMethod.GET)
 	   public String getImages(HttpServletRequest request, Model model) {
-		   
-		   List<String> res = getDB(request);
-	       model.addAttribute("uploadedFiles", res);
-	 
-	       // Forward to "/WEB-INF/pages/uploadMultiFile.jsp".
+		   	String path = request.getParameter("path");
+		   	if(path == null) path = "";
+		   	path = path.replace("1408dt2410", File.separator);
+		   	String rootSever = FOLDER_ROOT + File.separator + path;
+		   	String root = request.getServletContext().getRealPath(rootSever);
+			File directoryPath = new File(root);
+			// List of all files and directories
+			File files[] = directoryPath.listFiles();
+			List<FileImage> fileImage = new ArrayList<FileImage>();
+			int id = 0;
+			for(File file : files) {
+				id++;
+				fileImage.add(new FileImage(id, file.getName(), rootSever + File.separator + file.getName(), file.isDirectory() ? true : false));
+			}
+	       model.addAttribute("Files", fileImage);
+	       String prePath = directoryPath.getParent().replace(request.getServletContext().getRealPath(FOLDER_ROOT), "");
+	       prePath = prePath.replace(File.separator, "1408dt2410");
+	       model.addAttribute("pre", prePath);
+	       
+	       String nowPath = directoryPath.getPath().replace(request.getServletContext().getRealPath(FOLDER_ROOT), "");
+	       nowPath = nowPath.replace(File.separator, "1408dt2410");
+	       model.addAttribute("now", nowPath);
+	       
 	       return "thuvienanh";
 	   }
 	  
@@ -96,6 +109,48 @@ public class MyFileUploadController {
 	           @ModelAttribute("myUploadForm") MyUploadForm myUploadForm) {
 	 
 	       return this.doUpload(request, model, myUploadForm);
+	 
+	   }
+	   
+	// POST: Sử lý Upload
+	   @RequestMapping(value = "/themfolder", method = RequestMethod.POST)
+	   public String createFolder(HttpServletRequest request, Model model) {
+		  	String nameFolder = request.getParameter("nameFolder");
+		   	String path = request.getParameter("nowPath");
+		   	path = path.replace("1408dt2410", File.separator);
+		   	String rootSever = FOLDER_ROOT + File.separator + path;
+		   	String newFolder = FOLDER_ROOT + File.separator + path + File.separator + nameFolder;
+		   	String root = request.getServletContext().getRealPath(rootSever);
+		   	String pathNewFolder = request.getServletContext().getRealPath(newFolder);
+			File directoryPath = new File(root);
+			File folder = new File(pathNewFolder);
+			if(!folder.exists()) folder.mkdirs();
+			// List of all files and directories
+			File files[] = directoryPath.listFiles();
+			List<FileImage> fileImage = new ArrayList<FileImage>();
+			int id = 0;
+			for(File file : files) {
+				id++;
+				fileImage.add(new FileImage(id, file.getName(), rootSever + File.separator + file.getName(), file.isDirectory() ? true : false));
+			}
+	       model.addAttribute("Files", fileImage);
+	       String prePath = directoryPath.getParent().replace(request.getServletContext().getRealPath(FOLDER_ROOT), "");
+	       prePath = prePath.replace(File.separator, "1408dt2410");
+	       model.addAttribute("pre", prePath);
+	       
+	       String nowPath = directoryPath.getPath().replace(request.getServletContext().getRealPath(FOLDER_ROOT), "");
+	       nowPath = nowPath.replace(File.separator, "1408dt2410");
+	       model.addAttribute("now", nowPath);
+		   return "thuvienanh";
+	 
+	   }
+	   
+	// POST: Sử lý Upload
+	   @RequestMapping(value = "/xoaanh", method = RequestMethod.GET)
+	   public String deletefile(HttpServletRequest request, Model model) {
+		
+	 
+	       return "thuvienanh";
 	 
 	   }
 	 
@@ -119,6 +174,7 @@ public class MyFileUploadController {
 	       CommonsMultipartFile[] fileDatas = myUploadForm.getFileDatas();
 	       
 	       List<String> uploadedFiles = new ArrayList<String>();
+	       
 	       for (CommonsMultipartFile fileData : fileDatas) {
 	    	   
 	           // Tên file gốc tại Client.
@@ -134,7 +190,7 @@ public class MyFileUploadController {
 	                   BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(serverFile));
 	                   stream.write(fileData.getBytes());
 	                   stream.close();
-	                   saveDB("/images/" + name, request);
+	                  
 	                   uploadedFiles.add("/images/" + name);
 	                   System.out.println("Write file: " + serverFile);
 	               } catch (Exception e) {
@@ -143,66 +199,13 @@ public class MyFileUploadController {
 	           }
 	       }
 	      
-	       
 	       model.addAttribute("description", description);
 	       model.addAttribute("uploadedFiles", uploadedFiles);
 	       return "uploadResult";
 	   }
 	   
-	   public static void saveDB(String data, HttpServletRequest request) {
-		    BufferedWriter bw = null;
-			FileWriter fw = null;
-			
-			 String uploadRootPath = request.getServletContext().getRealPath("urlimage.txt");
-		     
-			try {
-				File file = new File(uploadRootPath);
-				if (!file.exists())
-					file.createNewFile();
-				fw = new FileWriter(file.getAbsoluteFile(), true);
-				bw = new BufferedWriter(fw);
-				bw.write(data + "\r\n");
-			} catch (Exception e) {
-				System.out.println(e);
-			} finally {
-				try {
-					if (bw != null)
-						bw.close();
-					if (fw != null)
-						fw.close();
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
-			}
-	   }
 	   
-	   public static List<String> getDB(HttpServletRequest request) {
-		   FileInputStream fileInputStream = null;
-			BufferedReader bufferedReader = null;
-			List<String> list = null;
-			 String uploadRootPath = request.getServletContext().getRealPath("urlimage.txt");
-			try {
-				
-				
-				fileInputStream = new FileInputStream(new File(uploadRootPath));
-				System.out.println(fileInputStream.toString());
-				bufferedReader = new BufferedReader(new InputStreamReader(fileInputStream));
-				list = new ArrayList<String>();
-				String line = bufferedReader.readLine();
-				while (line != null) {
-					list.add(line);
-					line = bufferedReader.readLine();
-					
-				}
-				return list;
-			} catch (Exception e) {
-				return null;
-			}
-			
-	   }
 	   
-	   public static void main(String[] args) {
-//		List<String> res = getDB();
-//		System.out.println(res.size());
-	}
+	  
+		
 }
