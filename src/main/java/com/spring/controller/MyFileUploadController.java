@@ -84,6 +84,7 @@ public class MyFileUploadController {
 		   	String rootSever = FOLDER_ROOT + File.separator + path;
 		   	String root = request.getServletContext().getRealPath(rootSever);
 			File directoryPath = new File(root);
+			if(!directoryPath.exists()) directoryPath.mkdirs();
 			// List of all files and directories
 			File files[] = directoryPath.listFiles();
 			List<FileImage> fileImage = new ArrayList<FileImage>();
