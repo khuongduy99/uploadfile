@@ -19,11 +19,7 @@
         <form:input path="description" style="width:300px;"/>                
         <br/><br/>                 
      
-        File to upload (1): <form:input path="fileDatas" type="file"/><br />      
-        File to upload (2): <form:input path="fileDatas" type="file"/><br />    
-        File to upload (3): <form:input path="fileDatas" type="file"/><br />    
-        File to upload (4): <form:input path="fileDatas" type="file"/><br />    
-        File to upload (5): <form:input path="fileDatas" type="file"/><br />    
+        File to upload (1): <form:input path="fileDatas" type="file"  multiple="multiple"/>
          
         <input type="submit" value="Upload">
           

@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import org.springframework.web.multipart.support.ByteArrayMultipartFileEditor;
 
@@ -98,7 +100,8 @@ public class MyFileUploadController {
 	       String nowPath = directoryPath.getPath().replace(request.getServletContext().getRealPath(FOLDER_ROOT), "");
 	       nowPath = nowPath.replace(File.separator, "1408dt2410");
 	       model.addAttribute("now", nowPath);
-	       
+	       MyUploadForm myUploadForm = new MyUploadForm();
+	       model.addAttribute("myUploadForm", myUploadForm);
 	       return "thuvienanh";
 	   }
 	  
@@ -117,52 +120,45 @@ public class MyFileUploadController {
 	   public String createFolder(HttpServletRequest request, Model model) {
 		  	String nameFolder = request.getParameter("nameFolder");
 		   	String path = request.getParameter("nowPath");
-		   	path = path.replace("1408dt2410", File.separator);
-		   	String rootSever = FOLDER_ROOT + File.separator + path;
-		   	String newFolder = FOLDER_ROOT + File.separator + path + File.separator + nameFolder;
-		   	String root = request.getServletContext().getRealPath(rootSever);
+		   	String newpath = path.replace("1408dt2410", File.separator);
+		   	String newFolder = FOLDER_ROOT + File.separator + newpath + File.separator + nameFolder;
 		   	String pathNewFolder = request.getServletContext().getRealPath(newFolder);
-			File directoryPath = new File(root);
 			File folder = new File(pathNewFolder);
 			if(!folder.exists()) folder.mkdirs();
-			// List of all files and directories
-			File files[] = directoryPath.listFiles();
-			List<FileImage> fileImage = new ArrayList<FileImage>();
-			int id = 0;
-			for(File file : files) {
-				id++;
-				fileImage.add(new FileImage(id, file.getName(), rootSever + File.separator + file.getName(), file.isDirectory() ? true : false));
-			}
-	       model.addAttribute("Files", fileImage);
-	       String prePath = directoryPath.getParent().replace(request.getServletContext().getRealPath(FOLDER_ROOT), "");
-	       prePath = prePath.replace(File.separator, "1408dt2410");
-	       model.addAttribute("pre", prePath);
-	       
-	       String nowPath = directoryPath.getPath().replace(request.getServletContext().getRealPath(FOLDER_ROOT), "");
-	       nowPath = nowPath.replace(File.separator, "1408dt2410");
-	       model.addAttribute("now", nowPath);
-		   return "thuvienanh";
+			
+		   return "redirect:thuvienanh?path=" + path;
 	 
 	   }
+	   
+	
 	   
 	// POST: Sử lý Upload
 	   @RequestMapping(value = "/xoaanh", method = RequestMethod.GET)
 	   public String deletefile(HttpServletRequest request, Model model) {
-		
-	 
-	       return "thuvienanh";
+		   String nowpath = request.getParameter("path");
+		   String name = request.getParameter("name");
+			String newpath = nowpath.replace("1408dt2410", File.separator);
+			String fileDelete = FOLDER_ROOT + File.separator + newpath + File.separator + name;
+			String pathFileDelete = request.getServletContext().getRealPath(fileDelete);
+		   try {
+	            File file = new File(pathFileDelete);
+	            if (file.delete()) {
+	                System.out.println(file.getName() + " is deleted!");
+	            } else {
+	                System.out.println("Delete operation is failed.");
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+		   return "redirect:thuvienanh?path=" + nowpath;
 	 
 	   }
 	 
-	   private String doUpload(HttpServletRequest request, Model model, //
-	           MyUploadForm myUploadForm) {
-	 
-	       String description = myUploadForm.getDescription();
-	       System.out.println("Description: " + description);
-	 
+	   private String doUpload(HttpServletRequest request, Model model, MyUploadForm myUploadForm) {
+		   
+		   String path = myUploadForm.getUrlDestFile().replace("1408dt2410", File.separator);
 	       // Thư mục gốc upload file.
-	       String uploadRootPath = request.getServletContext().getRealPath("images");
-	       System.out.println("uploadRootPath=" + uploadRootPath);
+	       String uploadRootPath = request.getServletContext().getRealPath(FOLDER_ROOT + File.separator + path);
 	 
 	       File uploadRootDir = new File(uploadRootPath);
 	      
@@ -199,9 +195,7 @@ public class MyFileUploadController {
 	           }
 	       }
 	      
-	       model.addAttribute("description", description);
-	       model.addAttribute("uploadedFiles", uploadedFiles);
-	       return "uploadResult";
+	       return "redirect:thuvienanh?path=" + myUploadForm.getUrlDestFile();
 	   }
 	   
 	   

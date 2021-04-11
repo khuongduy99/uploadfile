@@ -1,5 +1,6 @@
 <%@taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
-
+<%@taglib uri="http://www.springframework.org/tags/form" prefix="form"%>
+ 
 <html>
 <head>
 <title>Upload Result</title>
@@ -25,8 +26,9 @@
 		    <i class="fas fa-folder-open text-warning" style="font-size: 80px;"></i>
 		    <div class="card-body">
 		      <p class="card-text">${file.name}</p>
-		      <a href="<%=request.getContextPath() + "/thuvienanh?path="%>${now}1408dt2410${file.name}" class="btn btn-danger stretched-link w-100">Xóa</a>
-		      
+		      <a href="${pageContext.request.contextPath}/thuvienanh?path=${now}1408dt2410${file.name}" class="btn btn-primary w-100">open</a><br>
+		      <br>
+		      <a href="${pageContext.request.contextPath}/xoaanh?path=${now}&name=${file.name}" class="btn btn-danger  w-100">xoa</a>
 		    </div>
 		</div>
 			  </c:when>
@@ -35,7 +37,7 @@
 		    <img class="card-img-top" src="<%=request.getContextPath()%>${file.url}" alt="Card image" style="width:100%">
 		    <div class="card-body">
 		      <p class="card-text">${file.name}</p>
-		      	<a href="#" class="btn btn-danger w-100 stretched-link">Xóa</a>
+		      	<a href="${pageContext.request.contextPath}/xoaanh?path=${now}&name=${file.name}" class="btn btn-danger w-100 stretched-link">xoa</a>
 		    </div>
 		</div>
 			  </c:otherwise>
@@ -48,14 +50,14 @@
 		    <i class="fas fa-folder-plus text-success" style="font-size: 60px;"></i>
 		    <div class="card-body">
 		      <p class="card-text">${file.name}</p>
-		      <a href="#" class="btn btn-primary stretched-link" data-toggle="modal" data-target="#myModal">Thêm folder</a>
+		      <a href="#" class="btn btn-primary stretched-link" data-toggle="modal" data-target="#myModal">ThÃªm folder</a>
 		    </div>
 		</div>
 		<div class="card col-md-2">
 		    <i class="fas fa-file-medical text-success" style="font-size: 60px;"></i>
 		    <div class="card-body">
 		      <p class="card-text">${file.name}</p>
-		      <a href="#" class="btn btn-primary stretched-link" data-toggle="modal" data-target="#myModal1">Thêm file</a>
+		      <a href="#" class="btn btn-primary stretched-link" data-toggle="modal" data-target="#myModal1">ThÃªm file</a>
 		    </div>
 		</div>
 	</div>
@@ -73,13 +75,15 @@
         
         <!-- Modal body -->
         <div class="modal-body">
-          <form action="<%= request.getContextPath() + "/themfolder" %>" method="post">
-          	<label for="name-folder">tên folder</label>
-          	<input id="name-folder" type="text" name="nameFolder">
-          	<input type="hidden" value="${now}" name="nowPath">
-          	
-          	<button type="submit">Them</button>
-          </form>
+     <form method="POST" action="${pageContext.request.contextPath}/themfolder">
+                
+     
+        <input name="nameFolder" type="text"/>
+        <input name="nowPath" type="hidden" value="${now}"/>
+         
+        <input type="submit" value="Upload">
+          
+    </form>
         </div>
         
         <!-- Modal footer -->
@@ -104,7 +108,16 @@
         
         <!-- Modal body -->
         <div class="modal-body">
-          Them file
+            <!-- MyUploadForm -->
+    <form:form modelAttribute="myUploadForm" method="POST" action="${pageContext.request.contextPath}/uploadMultiFile" enctype="multipart/form-data">
+                
+     
+        <form:input path="fileDatas" type="file"  multiple="multiple"/>
+        <form:input path="urlDestFile" type="hidden" value="${now}"/>
+         
+        <input type="submit" value="Upload">
+          
+    </form:form>
         </div>
         
         <!-- Modal footer -->
