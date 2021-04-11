@@ -76,7 +76,7 @@ public class MyFileUploadController {
 	   }
 	   
 	// GET: Hiển thị trang form upload
-	   @RequestMapping(value = "/thuvienanh", method = RequestMethod.GET)
+	   @RequestMapping(value = {"/", "/thuvienanh"}, method = RequestMethod.GET)
 	   public String getImages(HttpServletRequest request, Model model) {
 		   	String path = request.getParameter("path");
 		   	if(path == null) path = "";
